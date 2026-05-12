@@ -42,6 +42,4 @@ npm run dev
 ### Database
 Use PostgreSQL database named `ai_grievance`.
 
-### OpenAI
-Leave `OPENAI_API_KEY` blank until hackathon day.
-The project automatically falls back to local AI logic if the key is missing.
+
