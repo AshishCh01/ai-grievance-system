@@ -108,13 +108,7 @@ export default function HeatmapView({ grievances }) {
       point.weight,
     ])
   }, [clusteredPoints])
-  // const heatPoints = useMemo(() => {
-  //   return clusteredPoints.map((point) => [
-  //     point.lat,
-  //     point.lon,
-  //     point.weight,
-  //   ])
-  // }, [clusteredPoints])
+  
 
   return (
     <MapContainer

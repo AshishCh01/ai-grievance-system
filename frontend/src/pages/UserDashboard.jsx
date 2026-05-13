@@ -28,6 +28,8 @@ export default function UserDashboard() {
   const [showFormModal, setShowFormModal] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [listeningField, setListeningField] = useState(null)
+  const [speechSupported, setSpeechSupported] = useState(true)
   const navigate = useNavigate()
 
   const loadData = async () => {
@@ -88,7 +90,44 @@ export default function UserDashboard() {
   }
   //
 
+  const startSpeechToText = (field) => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
 
+    if (!SpeechRecognition) {
+      setSpeechSupported(false)
+      setMessage('Speech recognition is not supported in this browser.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-IN'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    setListeningField(field)
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript
+
+      setForm((prev) => ({
+        ...prev,
+        [field]: prev[field]
+          ? `${prev[field]} ${transcript}`
+          : transcript,
+      }))
+    }
+
+    recognition.onerror = () => {
+      setMessage('Could not capture speech. Please try again.')
+    }
+
+    recognition.onend = () => {
+      setListeningField(null)
+    }
+
+    recognition.start()
+  }
 
 
   const submitGrievance = async (e) => {
@@ -376,13 +415,65 @@ export default function UserDashboard() {
                 <button className="ghost-btn" type="button" onClick={() => setShowFormModal(false)}>Close</button>
               </div>
               <form className="form tw-gap-4" onSubmit={submitGrievance}>
+                
                 <label>
                   <span>Title</span>
-                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Short title" required />
+
+                  <div className="voice-field">
+                    <input
+                      value={form.title}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          title: e.target.value,
+                        })
+                      }
+                      placeholder="Short title"
+                      required
+                    />
+
+                    <button
+                      type="button"
+                      className={`voice-btn ${
+                        listeningField === 'title' ? 'active' : ''
+                      }`}
+                      onClick={() => startSpeechToText('title')}
+                      title="Speak title"
+                    >
+                      🎤
+                    </button>
+                  </div>
                 </label>
+
+
                 <label>
                   <span>Description</span>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows="6" placeholder="Describe your issue clearly" required />
+
+                  <div className="voice-field">
+                    <textarea
+                      value={form.description}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          description: e.target.value,
+                        })
+                      }
+                      rows="6"
+                      placeholder="Describe your issue clearly"
+                      required
+                    />
+
+                    <button
+                      type="button"
+                      className={`voice-btn description-btn ${
+                        listeningField === 'description' ? 'active' : ''
+                      }`}
+                      onClick={() => startSpeechToText('description')}
+                      title="Speak description"
+                    >
+                      🎤
+                    </button>
+                  </div>
                 </label>
 
                 <div className="tw-grid tw-gap-4 tw-md:tw-grid-cols-2">
