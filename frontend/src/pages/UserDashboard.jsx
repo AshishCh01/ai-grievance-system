@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeftRight, Bell, LogOut, Plus, Sparkles } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Cell,
@@ -23,6 +25,7 @@ export default function UserDashboard() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [duplicateData, setDuplicateData] = useState(null)
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [showFormModal, setShowFormModal] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -60,30 +63,30 @@ export default function UserDashboard() {
   }, [form.title, form.description, form.location])
 
 
-//
-const fetchLocations = async (query) => {
-  if (!query) {
-    setSuggestions([])
-    return
-  }
+  //
+  const fetchLocations = async (query) => {
+    if (!query) {
+      setSuggestions([])
+      return
+    }
 
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in&limit=5`,
-      {
-        headers: {
-          'User-Agent': 'AI-Grievance-System'
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in&limit=5`,
+        {
+          headers: {
+            'User-Agent': 'AI-Grievance-System'
+          }
         }
-      }
-    )
+      )
 
-    const data = await response.json()
-    setSuggestions(data)
-  } catch (error) {
-    console.error('Location search error:', error)
+      const data = await response.json()
+      setSuggestions(data)
+    } catch (error) {
+      console.error('Location search error:', error)
+    }
   }
-}
-//
+  //
 
 
 
@@ -119,7 +122,7 @@ const fetchLocations = async (query) => {
       setFile(null)
       setSelectedLocation(null)
       setSuggestions([])
-    
+
       await loadData()
     } catch (err) {
       setMessage(err?.response?.data?.detail || 'Submission failed')
@@ -188,8 +191,18 @@ const fetchLocations = async (query) => {
           <p>Submit complaints, see AI routing, and track every update.</p>
         </div>
         <div className="topbar-actions">
-          <Link className="ghost-btn" to="/login">Switch account</Link>
-          <button className="primary-btn" onClick={logout}>Logout</button>
+          <Link className="ghost-btn with-icon" to="/login">
+            <ArrowLeftRight size={18} />
+            Switch account
+          </Link>
+          <button className="primary-btn with-icon" onClick={() => setShowFormModal(true)}>
+            <Plus size={18} />
+            New grievance
+          </button>
+          <button className="ghost-btn with-icon" onClick={logout}>
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
       </header>
 
@@ -222,8 +235,9 @@ const fetchLocations = async (query) => {
                 <span className="eyebrow">AI preview</span>
                 <h3>Live grievance classification</h3>
               </div>
+              <Sparkles size={20} color="#0e7490" />
             </div>
-            <div className="preview-box">
+            <div className="preview-box tw-grid tw-grid-cols-1 tw-gap-2 tw-md:tw-grid-cols-2">
               <div className="preview-pill">Department: {preview?.department || 'Waiting for input'}</div>
               <div className="preview-pill">Priority: {preview?.priority || '—'}</div>
               <div className="preview-pill">Sentiment: {preview?.sentiment || '—'}</div>
@@ -234,78 +248,19 @@ const fetchLocations = async (query) => {
           </article>
 
           <article className="glass panel">
-            <span className="eyebrow">New grievance</span>
-            <h3>Submit complaint</h3>
-            <form className="form" onSubmit={submitGrievance}>
-              <label>
-                <span>Title</span>
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Short title" required />
-              </label>
-              <label>
-                <span>Description</span>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows="6" placeholder="Describe your issue clearly" required />
-              </label>
-              
-              
-              {/* <label>
-                <span>Location</span>
-                <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Area, ward, village, landmark" />
-              </label> */}
-
-
-              <label>
-                <span>Location</span>
-                <input
-                    value={form.location}
-                    placeholder="Search area, ward, village, landmark"
-                    onChange={(e) => {
-                        setForm({ ...form, location: e.target.value })
-                        fetchLocations(e.target.value)
-                    }}
-                />
-
-                {suggestions.length > 0 && (
-                    <div className="location-suggestions">
-                        {suggestions.map((item) => (
-                            <div
-                                key={item.place_id}
-                                className="location-item"
-                                onClick={() => {
-                                    setForm({
-                                        ...form,
-                                        location: item.display_name
-                                    })
-
-                                    setSelectedLocation({
-                                        latitude: item.lat,
-                                        longitude: item.lon
-                                    })
-
-                                    setSuggestions([])
-                                }}
-                            >
-                                {item.display_name}
-                            </div>
-                        ))}
-                    </div>
-                )}
-              </label>
-
-
-
-
-
-
-
-              <label>
-                <span>Attachment</span>
-                <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-              </label>
-              {message ? <div className={message.includes('successfully') ? 'alert success' : 'alert error'}>{message}</div> : null}
-              <button className="primary-btn" type="submit" disabled={loading}>
-                {loading ? 'Submitting...' : 'Submit grievance'}
-              </button>
-            </form>
+            <div className="section-head">
+              <div>
+                <span className="eyebrow">New grievance</span>
+                <h3>Start a fresh complaint</h3>
+              </div>
+            </div>
+            <p className="muted">
+              Open the submission form to file a new grievance with location and attachments.
+            </p>
+            <button className="primary-btn with-icon" onClick={() => setShowFormModal(true)}>
+              <Plus size={18} />
+              Open grievance form
+            </button>
           </article>
         </div>
 
@@ -317,8 +272,8 @@ const fetchLocations = async (query) => {
                 <h3>My grievance distribution</h3>
               </div>
             </div>
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="chart-wrap chart-shell">
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
                     data={chartData}
@@ -347,8 +302,9 @@ const fetchLocations = async (query) => {
                 <span className="eyebrow">Updates</span>
                 <h3>Recent notifications</h3>
               </div>
+              <Bell size={20} color="#1e3a8a" />
             </div>
-            <div className="list compact-list">
+            <div className="list compact-list tw-grid tw-gap-3">
               {notifications.length ? notifications.slice(0, 4).map((note) => (
                 <div key={note.id} className="mini-card">
                   <strong>{note.channel.toUpperCase()} · {note.status}</strong>
@@ -367,7 +323,7 @@ const fetchLocations = async (query) => {
             <h3>My grievances</h3>
           </div>
         </div>
-        <div className="card-list">
+        <div className="card-list tw-gap-4">
           {grievances.map((g) => (
             <article className="complaint-card" key={g.id}>
               <div className="card-top">
@@ -391,44 +347,154 @@ const fetchLocations = async (query) => {
         </div>
       </section>
 
-      {showDuplicateModal && duplicateData && (
-        <div className="duplicate-modal-overlay">
-          <div className="duplicate-modal">
-            <h3>Similar Grievance Found</h3>
+      <AnimatePresence>
+        {showFormModal && (
+          <motion.div
+            className="grievance-modal-overlay"
+            onClick={() => setShowFormModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="grievance-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="New grievance"
+              onClick={(event) => event.stopPropagation()}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="modal-head">
+                <div>
+                  <span className="eyebrow">New grievance</span>
+                  <h3>Submit complaint</h3>
+                  <p className="muted small">Fill in details and submit for AI routing and tracking.</p>
+                </div>
+                <button className="ghost-btn" type="button" onClick={() => setShowFormModal(false)}>Close</button>
+              </div>
+              <form className="form tw-gap-4" onSubmit={submitGrievance}>
+                <label>
+                  <span>Title</span>
+                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Short title" required />
+                </label>
+                <label>
+                  <span>Description</span>
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows="6" placeholder="Describe your issue clearly" required />
+                </label>
 
-            <p>
-              A similar grievance already exists.
-            </p>
+                <div className="tw-grid tw-gap-4 tw-md:tw-grid-cols-2">
+                  <label className="location-field">
+                    <span>Location</span>
+                    <input
+                      value={form.location}
+                      placeholder="Search area, ward, village, landmark"
+                      onChange={(e) => {
+                        setForm({ ...form, location: e.target.value })
+                        fetchLocations(e.target.value)
+                      }}
+                    />
 
-            <p>
-              <strong>Grievance Code:</strong> {duplicateData.grievance_code}
-            </p>
+                    {suggestions.length > 0 && (
+                      <div className="location-suggestions">
+                        {suggestions.map((item) => (
+                          <div
+                            key={item.place_id}
+                            className="location-item"
+                            onClick={() => {
+                              setForm({
+                                ...form,
+                                location: item.display_name
+                              })
 
-            <p>
-              <strong>Similarity:</strong> {duplicateData.similarity}%
-            </p>
+                              setSelectedLocation({
+                                latitude: item.lat,
+                                longitude: item.lon
+                              })
 
-            <div className="duplicate-actions">
-              <button
-                className="secondary-btn"
-                onClick={() => {
-                  setShowDuplicateModal(false)
-                  setDuplicateData(null)
-                }}
-              >
-                Cancel
-              </button>
+                              setSuggestions([])
+                            }}
+                          >
+                            {item.display_name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </label>
 
-              <button
-                className="primary-btn"
-                onClick={submitAnyway}
-              >
-                Submit Anyway
-              </button>
-            </div>
-          </div>
-        </div>
-    )}
+                  <label>
+                    <span>Attachment</span>
+                    <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+                {message ? <div className={message.includes('successfully') ? 'alert success' : 'alert error'}>{message}</div> : null}
+                <div className="modal-actions">
+                  <button className="secondary-btn" type="button" onClick={() => setShowFormModal(false)}>
+                    Cancel
+                  </button>
+                  <button className="primary-btn" type="submit" disabled={loading}>
+                    {loading ? 'Submitting...' : 'Submit grievance'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDuplicateModal && duplicateData && (
+          <motion.div
+            className="duplicate-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="duplicate-modal"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 18 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h3>Similar Grievance Found</h3>
+
+              <p>
+                A similar grievance already exists.
+              </p>
+
+              <p>
+                <strong>Grievance Code:</strong> {duplicateData.grievance_code}
+              </p>
+
+              <p>
+                <strong>Similarity:</strong> {duplicateData.similarity}%
+              </p>
+
+              <div className="duplicate-actions">
+                <button
+                  className="secondary-btn"
+                  onClick={() => {
+                    setShowDuplicateModal(false)
+                    setDuplicateData(null)
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="primary-btn"
+                  onClick={submitAnyway}
+                >
+                  Submit Anyway
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

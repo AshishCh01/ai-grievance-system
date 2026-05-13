@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import HeatmapView from '../components/HeatmapView'
 import { useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -74,7 +75,10 @@ export default function AdminDashboard() {
           <h2>System control room</h2>
           <p>Manage officers, department coverage, and platform performance.</p>
         </div>
-        <button className="primary-btn" onClick={logout}>Logout</button>
+        <button className="primary-btn with-icon" onClick={logout}>
+          <LogOut size={18} />
+          Logout
+        </button>
       </header>
 
       {stats ? (
@@ -86,7 +90,7 @@ export default function AdminDashboard() {
         </section>
       ) : null}
 
-      <section className="dashboard-grid officer-grid">
+      <section className="dashboard-grid officer-grid tw-gap-4">
         <article className="glass panel chart-panel">
           <div className="section-head">
             <div>
@@ -94,14 +98,14 @@ export default function AdminDashboard() {
               <h3>Top grievance departments</h3>
             </div>
           </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="chart-wrap chart-shell">
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={departmentChart}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="code" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="grievances" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="grievances" radius={[10, 10, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -114,8 +118,8 @@ export default function AdminDashboard() {
               <h3>Resolved vs total</h3>
             </div>
           </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="chart-wrap chart-shell">
+            <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie
                   data={[
@@ -142,7 +146,7 @@ export default function AdminDashboard() {
         </article>
       </section>
 
-      <section className="glass panel heatmap-panel">
+      <section className="glass panel heatmap-panel tw-space-y-4">
         <div className="section-head">
           <div>
             <span className="eyebrow">Geo analytics</span>
@@ -150,8 +154,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <HeatmapView grievances={grievances} />
-        <div className="heatmap-legend">
+        <div className="heatmap-shell">
+          <HeatmapView grievances={grievances} />
+        </div>
+        <div className="heatmap-legend tw-gap-3">
           <div className="heatmap-legend-item">
             <span className="legend-dot legend-low"></span>
             Low Density
@@ -175,7 +181,7 @@ export default function AdminDashboard() {
       </section>
 
 
-      <section className="dashboard-grid officer-grid admin-bottom">
+      <section className="dashboard-grid officer-grid admin-bottom tw-gap-4">
         <article className="glass panel">
           <span className="eyebrow">Add officer</span>
           <h3>Create department login</h3>
@@ -193,7 +199,7 @@ export default function AdminDashboard() {
         <article className="glass panel">
           <span className="eyebrow">Seeded access</span>
           <h3>Officer directory</h3>
-          <div className="card-list compact-grid">
+          <div className="card-list compact-grid tw-gap-3">
             {officers.map((o) => (
               <div className="mini-card" key={o.id}>
                 <strong>{o.department || 'General'}</strong>

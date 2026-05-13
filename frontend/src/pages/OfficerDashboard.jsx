@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bar,
@@ -75,7 +76,10 @@ export default function OfficerDashboard() {
           <p>Track assigned grievances, update status, and resolve citizen complaints quickly.</p>
         </div>
         <div className="topbar-actions">
-          <button className="primary-btn" onClick={logout}>Logout</button>
+          <button className="primary-btn with-icon" onClick={logout}>
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
       </header>
 
@@ -96,14 +100,14 @@ export default function OfficerDashboard() {
               <h3>Status distribution</h3>
             </div>
           </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="chart-wrap chart-shell">
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={stats?.by_status || []}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="value" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -116,8 +120,8 @@ export default function OfficerDashboard() {
               <h3>Complaint severity</h3>
             </div>
           </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="chart-wrap chart-shell">
+            <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie data={stats?.by_priority || []} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} innerRadius={48} paddingAngle={4}>
                   {(stats?.by_priority || []).map((entry, index) => (
@@ -138,20 +142,20 @@ export default function OfficerDashboard() {
             <span className="eyebrow">Complaint queue</span>
             <h3>Assigned grievances</h3>
           </div>
-          <div className="filter-row">
+          <div className="filter-row tw-gap-3 tw-w-full">
             <input
-              className="search-input"
+              className="search-input tw-flex-1"
               placeholder="Search grievance, citizen, code, location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <select className="tw-min-w-[180px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
               {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="card-list">
+        <div className="card-list tw-gap-4">
           {filtered.map((g) => (
             <article className="complaint-card officer-card" key={g.id}>
               <div className="card-top">
@@ -202,11 +206,11 @@ export default function OfficerDashboard() {
               </label>
 
               <div className="button-row">
-                <button disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Assigned')}>Assign</button>
-                <button disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'In Review')}>Review</button>
-                <button disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Action Taken')}>Action Taken</button>
-                <button disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Resolved')}>Resolve</button>
-                <button disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Rejected')}>Reject</button>
+                <button className="status-btn" data-variant="assigned" disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Assigned')}>Assign</button>
+                <button className="status-btn" data-variant="review" disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'In Review')}>Review</button>
+                <button className="status-btn" data-variant="action" disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Action Taken')}>Action Taken</button>
+                <button className="status-btn" data-variant="resolved" disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Resolved')}>Resolve</button>
+                <button className="status-btn" data-variant="rejected" disabled={busyId === g.id} onClick={() => updateStatus(g.id, 'Rejected')}>Reject</button>
               </div>
             </article>
           ))}
