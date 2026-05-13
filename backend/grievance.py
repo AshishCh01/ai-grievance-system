@@ -258,6 +258,8 @@ def _serialize_grievance(g: Grievance) -> Dict[str, object]:
         "creator_email": creator.email if creator else None,
         "officer_name": assigned.name if assigned else None,
         "officer_email": assigned.email if assigned else None,
+        "latitude": g.latitude,
+        "longitude": g.longitude,
         "created_at": g.created_at.isoformat(),
         "updated_at": g.updated_at.isoformat(),
         "resolved_at": g.resolved_at.isoformat() if g.resolved_at else None,

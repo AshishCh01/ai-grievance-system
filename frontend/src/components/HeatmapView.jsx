@@ -4,19 +4,35 @@ import L from 'leaflet'
 import 'leaflet.heat'
 import 'leaflet/dist/leaflet.css'
 
-function bucketGrievances(grievances, cellSize = 0.02) {
+const DEFAULT_CELL_SIZE = 0.12
+
+function getDensityLabel(count) {
+  if (count >= 11) return 'Critical'
+  if (count >= 6) return 'High'
+  if (count >= 3) return 'Medium'
+  return 'Low'
+}
+
+function getDensityWeight(count) {
+  if (count >= 11) return 1
+  if (count >= 6) return 0.75
+  if (count >= 3) return 0.5
+  return 0.25
+}
+
+function bucketGrievances(points, cellSize = DEFAULT_CELL_SIZE) {
   const buckets = new Map()
 
-  for (const g of grievances) {
-    const lat = Number(g.latitude)
-    const lon = Number(g.longitude)
+  for (const point of points) {
+    const lat = Number(point.lat)
+    const lon = Number(point.lon)
 
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue
 
-    const keyLat = Math.round(lat / cellSize) * cellSize
-    const keyLon = Math.round(lon / cellSize) * cellSize
+    const keyLat = Number((Math.round(lat / cellSize) * cellSize).toFixed(4))
+    const keyLon = Number((Math.round(lon / cellSize) * cellSize).toFixed(4))
 
-    const key = `${keyLat.toFixed(2)}:${keyLon.toFixed(2)}`
+    const key = `${keyLat.toFixed(4)}:${keyLon.toFixed(4)}`
 
     const current = buckets.get(key) || {
       lat: keyLat,
@@ -31,29 +47,20 @@ function bucketGrievances(grievances, cellSize = 0.02) {
 
   return [...buckets.values()].map((bucket) => {
     const count = bucket.count
-
-    const severity =
-      count >= 11
-        ? 'Critical'
-        : count >= 6
-        ? 'High'
-        : count >= 3
-        ? 'Medium'
-        : 'Low'
-
     return {
       ...bucket,
-      severity,
-      weight:
-        count >= 11
-          ? 1
-          : count >= 6
-          ? 0.8
-          : count >= 3
-          ? 0.6
-          : 0.35
+      severity: getDensityLabel(count),
+      weight: getDensityWeight(count),
     }
   })
+}
+
+function getLatLon(grievance) {
+  const lat = Number(grievance?.latitude ?? grievance?.lat)
+  const lon = Number(grievance?.longitude ?? grievance?.lng ?? grievance?.lon)
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
+  return { lat, lon }
 }
 
 function HeatLayer({ points }) {
@@ -63,15 +70,15 @@ function HeatLayer({ points }) {
     if (!points.length) return
 
     const heat = L.heatLayer(points, {
-      radius: 55,
-      blur: 40,
+      radius: 46,
+      blur: 30,
       maxZoom: 12,
-      minOpacity: 0.7,
-
+      max: 1,
+      minOpacity: 0.4,
       gradient: {
-        0.2: '#22c55e',
-        0.45: '#eab308',
-        0.7: '#f97316',
+        0.25: '#22c55e',
+        0.5: '#eab308',
+        0.75: '#f97316',
         1.0: '#ef4444',
       },
     }).addTo(map)
@@ -85,36 +92,21 @@ function HeatLayer({ points }) {
 }
 
 export default function HeatmapView({ grievances }) {
-  const validPoints = grievances.filter(
-    (g) =>
-      g.latitude !== null &&
-      g.longitude !== null &&
-      !isNaN(Number(g.latitude)) &&
-      !isNaN(Number(g.longitude))
-  )
+  const validPoints = useMemo(() => {
+    const source = Array.isArray(grievances) ? grievances : []
+    return source.map(getLatLon).filter(Boolean)
+  }, [grievances])
 
   const clusteredPoints = useMemo(() => {
     return bucketGrievances(validPoints)
   }, [validPoints])
 
-
   const heatPoints = useMemo(() => {
-  return clusteredPoints.flatMap((point) => {
-    const intensity =
-      point.severity === 'Critical'
-        ? 1
-        : point.severity === 'High'
-        ? 0.8
-        : point.severity === 'Medium'
-        ? 0.6
-        : 0.4
-
-      return Array(12).fill([
-        point.lat,
-        point.lon,
-        intensity,
-      ])
-    })
+    return clusteredPoints.map((point) => [
+      point.lat,
+      point.lon,
+      point.weight,
+    ])
   }, [clusteredPoints])
   // const heatPoints = useMemo(() => {
   //   return clusteredPoints.map((point) => [
