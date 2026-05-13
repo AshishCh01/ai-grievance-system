@@ -778,8 +778,11 @@ textarea {
   border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
+
 .heatmap-map {
-  height: 380px;
+  height: 460px;
+  width: 100%;
+  border-radius: 22px;
 }
 
 .heatmap-shell {

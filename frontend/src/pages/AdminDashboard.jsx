@@ -160,22 +160,22 @@ export default function AdminDashboard() {
         <div className="heatmap-legend tw-gap-3">
           <div className="heatmap-legend-item">
             <span className="legend-dot legend-low"></span>
-            Low Density
+            Low (1–2)
           </div>
 
           <div className="heatmap-legend-item">
             <span className="legend-dot legend-medium"></span>
-            Medium Density
+            Medium (3–5)
           </div>
 
           <div className="heatmap-legend-item">
             <span className="legend-dot legend-high"></span>
-            High Density
+            High (6–10)
           </div>
 
           <div className="heatmap-legend-item">
             <span className="legend-dot legend-critical"></span>
-            Critical Hotspot
+            Critical (11+)
           </div>
         </div>
       </section>
