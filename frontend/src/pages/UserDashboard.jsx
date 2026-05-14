@@ -11,8 +11,10 @@ import {
   Legend,
 } from 'recharts'
 import api from '../api'
+import LocationPicker from '../components/LocationPicker'
 
-const emptyForm = { title: '', description: '', location: '' }
+const emptyForm = { title: '', description: '', location: '', latitude: '', longitude: '' }
+
 
 export default function UserDashboard() {
   const [stats, setStats] = useState(null)
@@ -129,6 +131,43 @@ export default function UserDashboard() {
     recognition.start()
   }
 
+  //
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setMessage('Geolocation is not supported')
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude
+      const lng = pos.coords.longitude
+
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        )
+
+        const data = await res.json()
+
+        setForm((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+          location: data.display_name || `${lat}, ${lng}`,
+        }))
+
+        setSelectedLocation({
+          latitude: lat,
+          longitude: lng,
+        })
+      } catch {
+        setMessage('Unable to fetch address')
+      }
+    })
+  }
+  // 
+
 
   const submitGrievance = async (e) => {
     e.preventDefault()
@@ -140,10 +179,15 @@ export default function UserDashboard() {
       formData.append('description', form.description)
       formData.append('location', form.location)
 
-      if (selectedLocation) {
-        formData.append('latitude', selectedLocation.latitude)
-        formData.append('longitude', selectedLocation.longitude)
+      if (form.latitude && form.longitude) {
+        formData.append('latitude', form.latitude)
+        formData.append('longitude', form.longitude)
       }
+
+      // //if (selectedLocation) {
+      //   formData.append('latitude', selectedLocation.latitude)
+      //   formData.append('longitude', selectedLocation.longitude)
+      // }
 
       if (file) formData.append('file', file)
       const { data } = await api.post('/grievances', formData, {
@@ -181,10 +225,15 @@ export default function UserDashboard() {
       formData.append('description', form.description)
       formData.append('location', form.location)
 
-      if (selectedLocation) {
-        formData.append('latitude', selectedLocation.latitude)
-        formData.append('longitude', selectedLocation.longitude)
+      if (form.latitude && form.longitude) {
+        formData.append('latitude', form.latitude)
+        formData.append('longitude', form.longitude)
       }
+
+      // if (selectedLocation) {
+      //   formData.append('latitude', selectedLocation.latitude)
+      //   formData.append('longitude', selectedLocation.longitude)
+      // }
 
       formData.append('force_submit', true)
 
@@ -514,6 +563,19 @@ export default function UserDashboard() {
                       </div>
                     )}
                   </label>
+                  
+                  
+                  <div className="tw-flex tw-gap-2 tw-flex-wrap">
+                    <button
+                      type="button"
+                      className="ghost-btn"
+                      onClick={useCurrentLocation}
+                    >
+                      Use my current location
+                    </button>
+                  </div>
+
+                  <LocationPicker form={form} setForm={setForm} />
 
                   <label>
                     <span>Attachment</span>
